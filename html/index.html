@@ -6,6 +6,7 @@
 </head>
 <body>
     <h1>Users:</h1>
+    <input id="userId" type="hidden">
     <p>Name: <br><input type="text" id="userName"></p>
     <p>Name: <br><input type="number" id="userAge"></p>
     <p>
@@ -67,6 +68,115 @@
 
             return tr;
         }
+
+        async function getUser(id) {
+            let response = await fetch(`/api/users/${id}`, {
+                method: "GET",
+                headers: {
+                    "Accept": "applicaton/json"
+                }
+            });
+
+            if (response.ok === true) {
+                let user = await response.json();
+                document.getElementById("userId").value = user.id;
+                document.getElementById("userName").value = user.name;
+                document.getElementById("userAge").value = user.age;
+            }
+            else {
+                let error = await response.json();
+                console.log(error.message);
+            }
+        }
+
+        async function createUser(name, age) {
+            let response = await fetch(`/api/users/`, {
+                method: "POST",
+                headers: {
+                    "Accept": "applicaton/json",
+                    "Content-Type": "applicaton/json",
+                },
+                body: JSON.stringify({
+                    name: name,
+                    age: parseInt(age, 10)
+                })
+            });
+
+            if (response.ok === true) {
+                let user = await response.json();
+                document.querySelector("tbody").append(getRow(user));
+            }
+            else {
+                let error = await response.json();
+                console.log(error.message);
+            }
+
+        }
+
+        async function editUser(id, name, age) {
+            let response = await fetch(`/api/users/`, {
+                method: "PUT",
+                headers: {
+                    "Accept": "applicaton/json",
+                    "Content-Type": "applicaton/json",
+                },
+                body: JSON.stringify({
+                    id: id,
+                    name: name,
+                    age: parseInt(age, 10)
+                })
+            });
+
+            if (response.ok === true) {
+                let user = await response.json();
+                document.querySelector(`tr[data-rowid='${user.id}']`)
+                    .replaceWith(getRow(user));
+            }
+            else {
+                let error = await response.json();
+                console.log(error.message);
+            }
+        }
+
+        async function deleteUser(id) {
+            let response = await fetch(`/api/users/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Accept": "applicaton/json",
+                }
+            });
+            if (response.ok === true) {
+                let user = await response.json();
+                document.querySelector(`tr[data-rowid='${user.id}']`)
+                    .remove();
+            }
+            else {
+                let error = await response.json();
+                console.log(error.message);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById("userId").value = "";
+            document.getElementById("userName").value = "";
+            document.getElementById("userAge").value = "";
+        }
+
+        document.getElementById("btnCancel")
+            .addEventListener("click", () => resetForm());
+
+        document.getElementById("btnSave")
+            .addEventListener("click", async () => {
+                let id = document.getElementById("userId").value;
+                let name = document.getElementById("userName").value;
+                let age = document.getElementById("userAge").value;
+                if (id === "")
+                    await createUser(name, age);
+                else
+                    await editUser(id, name, age);
+                resetForm();
+            });
+
 
         getAllUsers();
     </script>

@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Users list</title>
+</head>
+<body>
+    <h1>Users:</h1>
+    <p>Name: <br><input type="text" id="userName"></p>
+    <p>Name: <br><input type="number" id="userAge"></p>
+    <p>
+        <button id="btnSave">Save</button>
+        <button id="btnCancel">Cancel</button>
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script>
+        //
+        async function getAllUsers() {
+            let response = await fetch("/api/users", {
+                method: "GET",
+                headers: {
+                    "Accept": "applicaton/json"
+                }
+            });
+            if (response.ok === true) {
+                let users = await response.json();
+                let tbody = document.querySelector("tbody");
+                users.forEach(u => tbody.append(getRow(u)));
+            }
+        }
+
+        function getRow(user) {
+            let tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", user.id);
+
+            let tdName = document.createElement("td");
+            tdName.append(user.name);
+            tr.append(tdName);
+
+            let tdAge = document.createElement("td");
+            tdAge.append(user.age);
+            tr.append(tdAge);
+
+            let tdBtns = document.createElement("td");
+
+            let btnEdit = document.createElement("button");
+            btnEdit.append("Edit");
+            btnEdit.addEventListener("click", async () => await getUser(user.id));
+            tdBtns.append(btnEdit);
+
+            let btnDelete = document.createElement("button");
+            btnDelete.append("Delete");
+            btnDelete.addEventListener("click", async () => await deleteUser(user.id));
+            tdBtns.append(btnDelete);
+
+            tr.append(tdBtns);
+
+            return tr;
+        }
+
+        getAllUsers();
+    </script>
+</body>
+</html>

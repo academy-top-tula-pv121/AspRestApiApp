@@ -30,7 +30,7 @@
             let response = await fetch("/api/users", {
                 method: "GET",
                 headers: {
-                    "Accept": "applicaton/json"
+                    "Accept": "application/json"
                 }
             });
             if (response.ok === true) {
@@ -73,7 +73,7 @@
             let response = await fetch(`/api/users/${id}`, {
                 method: "GET",
                 headers: {
-                    "Accept": "applicaton/json"
+                    "Accept": "application/json"
                 }
             });
 
@@ -90,11 +90,11 @@
         }
 
         async function createUser(name, age) {
-            let response = await fetch(`/api/users/`, {
+            let response = await fetch(`/api/users`, {
                 method: "POST",
                 headers: {
-                    "Accept": "applicaton/json",
-                    "Content-Type": "applicaton/json",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     name: name,
@@ -114,11 +114,11 @@
         }
 
         async function editUser(id, name, age) {
-            let response = await fetch(`/api/users/`, {
+            let response = await fetch(`/api/users`, {
                 method: "PUT",
                 headers: {
-                    "Accept": "applicaton/json",
-                    "Content-Type": "applicaton/json",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     id: id,
@@ -142,7 +142,7 @@
             let response = await fetch(`/api/users/${id}`, {
                 method: "DELETE",
                 headers: {
-                    "Accept": "applicaton/json",
+                    "Accept": "application/json",
                 }
             });
             if (response.ok === true) {

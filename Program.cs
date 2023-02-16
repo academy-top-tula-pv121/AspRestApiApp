@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace AspRestApiApp
@@ -16,45 +17,96 @@ namespace AspRestApiApp
             var builder = WebApplication.CreateBuilder(args);
             var app = builder.Build();
 
-            app.Run(async (context) =>
+            //RestApiRun();
+
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
+            app.MapGet("/api/users", () => users);
+
+            app.MapGet("/api/users/{id}", (string id) => 
             {
-                var response = context.Response;
-                var request = context.Request;
-                var path = request.Path;
+                string exprGuId = @"^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$";
 
-                // string exprIntegerId = "^api/users/([0-9]+)$";
-                string exprGuId = @"^/api/users/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$";
+                if (!Regex.IsMatch(id, exprGuId))
+                    return Results.NotFound(new { message = "User not found" });
 
-                if(path == "/api/users" && request.Method == "GET")
-                {
-                    await GetAllUsers(response);
-                }
-                else if(Regex.IsMatch(path, exprGuId) && request.Method == "GET")
-                {
-                    string? id = path.Value?.Split("/")[3];
-                    await GetUser(response, id);
-                }
-                else if(path == "/api/users" && request.Method == "PUT")
-                {
-                    await UpdateUser(response, request);
-                }
-                else if(path == "/api/users" && request.Method == "POST")
-                {
-                    await CreateUser(response, request);
-                }
-                else if(Regex.IsMatch(path, exprGuId) && request.Method == "DELETE")
-                {
-                    string? id = path.Value?.Split("/")[3];
-                    await DeleteUser(response, id);
-                }
-                else
-                {
-                    response.ContentType = "text/html; charset=utf-8";
-                    await response.SendFileAsync("html/index.html");
-                }
+                User? user = users.FirstOrDefault(u => u.Id == id);
+                if(user is null)
+                    return Results.NotFound(new { message = "User not found" });
+
+                return Results.Json(user);
+            });
+
+            app.MapPut("/api/users", (User userData) => 
+            {
+                User? user = users.FirstOrDefault(u => u.Id == userData.Id);
+                if (user is null)
+                    return Results.NotFound(new { message = "User not found" });
+
+                user.Name = userData.Name;
+                user.Age = userData.Age;
+                return Results.Json(user);
+            });
+
+            app.MapPost("/api/users", (User user) =>
+            {
+                user.Id = Guid.NewGuid().ToString();
+                users.Add(user);
+                return Results.Json(user);
+            });
+
+            app.MapDelete("/api/users/{id}", (string id) =>
+            {
+                User? user = users.FirstOrDefault(u => u.Id == id);
+                if (user is null)
+                    return Results.NotFound(new { message = "User not found" });
+                users.Remove(user);
+                return Results.Json(user);
             });
 
             app.Run();
+
+            void RestApiRun()
+            {
+                app.Run(async (context) =>
+                {
+                    var response = context.Response;
+                    var request = context.Request;
+                    var path = request.Path;
+
+                    // string exprIntegerId = "^api/users/([0-9]+)$";
+                    string exprGuId = @"^/api/users/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$";
+
+                    if (path == "/api/users" && request.Method == "GET")
+                    {
+                        await GetAllUsers(response);
+                    }
+                    else if (Regex.IsMatch(path, exprGuId) && request.Method == "GET")
+                    {
+                        string? id = path.Value?.Split("/")[3];
+                        await GetUser(response, id);
+                    }
+                    else if (path == "/api/users" && request.Method == "PUT")
+                    {
+                        await UpdateUser(response, request);
+                    }
+                    else if (path == "/api/users" && request.Method == "POST")
+                    {
+                        await CreateUser(response, request);
+                    }
+                    else if (Regex.IsMatch(path, exprGuId) && request.Method == "DELETE")
+                    {
+                        string? id = path.Value?.Split("/")[3];
+                        await DeleteUser(response, id);
+                    }
+                    else
+                    {
+                        response.ContentType = "text/html; charset=utf-8";
+                        await response.SendFileAsync("html/index.html");
+                    }
+                });
+            }
         }
 
         async static Task GetAllUsers(HttpResponse response)
